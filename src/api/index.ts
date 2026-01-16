@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.URL_BE;
+const BASE_URL = import.meta.env.VITE_URL_BE;
 
 export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem("accessToken");
