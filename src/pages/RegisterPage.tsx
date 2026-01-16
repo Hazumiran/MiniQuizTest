@@ -32,7 +32,7 @@ const RegisterPage = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Register Error:", error);
-      setErrorMsg(error.message || "Gagal mendaftar. Silakan coba lagi.");
+      setErrorMsg(error.message || "Register Error");
     } finally {
       setIsLoading(false);
     }

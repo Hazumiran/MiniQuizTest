@@ -5,7 +5,7 @@ import { useCallback } from "react";
 
 interface Subtest {
   id: number;
-  title: string;
+  name: string;
   description: string;
   question_count: number;
   duration: number;
@@ -17,14 +17,10 @@ const DashboardPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await fetchAPI("/auth/logout", { method: "POST" });
+  const handleLogout = useCallback(async () => {    
+    await fetchAPI("/auth/logout", { method: "POST" });
       localStorage.removeItem("accessToken");
       navigate("/login");
-    } catch (error) {
-      console.error("Logout Error:", error);
-    }
   }, [navigate]);
 
   useEffect(() => {
@@ -41,6 +37,7 @@ const DashboardPage = () => {
           method: "GET"
         });
 
+        console.log("Subtests Data:", data);
         setSubtests(data.data || []);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,19 +77,15 @@ const DashboardPage = () => {
       )}
 
       {!isLoading && !errorMsg && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(700px, 1fr))", gap: "20px" }}>
           {subtests.map((test) => (
             <div key={test.id} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-              <h3 style={{ marginTop: 0 }}>{test.title}</h3>
+              <h3 style={{ marginTop: 0 }}>{test.name}</h3>
               <p style={{ color: "#666", fontSize: "14px" }}>{test.description}</p>
               
-              <div style={{ margin: "15px 0", fontSize: "13px", color: "#444" }}>
-                <strong>⏳ {test.duration} Menit</strong> | <strong>📝 {test.question_count} Soal</strong>
-              </div>
-
               <button
                 style={{ width: "100%", padding: "10px", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                onClick={() => alert(`Nanti ini akan memulai kuis: ${test.title}`)}
+                onClick={() => {}}
               >
                 Mulai Kuis
               </button>

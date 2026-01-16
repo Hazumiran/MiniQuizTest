@@ -23,7 +23,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || "Terjadi kesalahan pada server");
+    throw new Error(data.error.message || "Server Error");
   }
 
   return data;

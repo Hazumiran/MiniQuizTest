@@ -28,14 +28,11 @@ const LoginPage = () => {
       
       localStorage.setItem("accessToken", token);
 
-      alert("Login Berhasil!");
       navigate("/dashboard");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Login Error:", error);
-      
-      setErrorMsg(error.message || "Login gagal.");
+      setErrorMsg(error.message || "Login Error");
     } finally {
       setIsLoading(false);
     }
