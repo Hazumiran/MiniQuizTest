@@ -56,6 +56,35 @@ const DashboardPage = () => {
     getSubtests();
   }, [navigate, handleLogout]);
 
+  const handleStartQuiz = async (subtestId:string) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return navigate("/login");
+
+    try {
+      await fetchAPI(`/quiz/start/${subtestId}`, {
+        method: "GET",
+      });
+
+      navigate("/quiz");
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      console.error("Gagal memulai kuis:", error);
+
+      if (error.message.includes("409") || error.message.toLowerCase().includes("active quiz")) {
+        const confirmResume = window.confirm(
+          "Anda masih memiliki sesi kuis yang belum selesai. Lanjutkan kuis tersebut?"
+        );
+        
+        if (confirmResume) {
+          navigate("/quiz"); 
+        }
+      } else {
+        alert(error.message || "Gagal memulai kuis.");
+      }
+    }
+  };
+
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
@@ -85,7 +114,7 @@ const DashboardPage = () => {
               
               <button
                 style={{ width: "100%", padding: "10px", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                onClick={() => {}}
+                onClick={() => handleStartQuiz(test.id.toString())}
               >
                 Mulai Kuis
               </button>
