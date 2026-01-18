@@ -158,10 +158,11 @@ const QuizPage = () => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const handleSelectOption = (questionNum: number, option: string) => {
+  const handleSelectOption = (questionNum: number, optionIndex: number) => {
+    const answerLetter = String.fromCharCode(65 + optionIndex);
     setAnswers((prev) => ({
       ...prev,
-      [questionNum]: option,
+      [String(questionNum)]: answerLetter,
     }));
   };
 
@@ -248,7 +249,7 @@ const QuizPage = () => {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {currentQuestion.options.map((option, idx) => {
-                const isSelected = answers[currentQuestion.question_number] === option;                
+                const isSelected = answers[currentQuestion.question_number] === String.fromCharCode(65 + idx);;                
                 return (
                   <label 
                       key={idx} 
@@ -265,9 +266,9 @@ const QuizPage = () => {
                     <input
                         type="radio"
                         name={`question-${currentQuestion.question_number}`}
-                        value={option}
+                        value={String.fromCharCode(65 + idx)}
                         checked={isSelected}
-                        onChange={() => handleSelectOption(currentQuestion.question_number, option)}
+                        onChange={() => handleSelectOption(currentQuestion.question_number, idx)}
                         style={{ marginRight: "10px" }}
                       />
                       {option}
