@@ -65,7 +65,7 @@ const RegisterPage = () => {
           onChange={(e) => setName(e.target.value)}
           placeholder="Nama Lengkap"
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+          className="w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
         />
         <input
           type="email"
@@ -73,7 +73,7 @@ const RegisterPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="user@example.com"
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+          className="w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
         />
         <input
           type="password"
@@ -81,12 +81,12 @@ const RegisterPage = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           required
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+          className="w-full px-4 py-3 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
         />
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-3 rounded-lg font-semibold text-white text-lg transition duration-300 ${
+          className={`w-full py-3 rounded-sm font-semibold text-white text-lg transition duration-300 ${
             isLoading
               ? "bg-gray-400 cursor-not-allowed shadow-inner"
               : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg"

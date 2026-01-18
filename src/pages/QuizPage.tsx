@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
 import { handleApi401 } from "../utils/authHelper";
+import toast from "react-hot-toast";
+import Modal from "../components/Modal";
 
 interface Question {
   question_number: number;
@@ -24,6 +26,11 @@ const QuizPage = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});  
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [openSubmit, setOpenSubmit] = useState(false);
+  const [quizResult, setQuizResult] = useState<any>(null);
+  const [titleModal, setTitleModal] = useState<string>("");
+  const [descriptionModal, setDescriptionModal] = useState<string>("");
+  const [modalType, setModalType] = useState<"submit" | "locked">("submit");
   
   const navigate = useNavigate();
 
@@ -50,14 +57,16 @@ const QuizPage = () => {
     if (!activeTab) {
       localStorage.setItem(QUIZ_TAB_KEY, TAB_ID);
     } else if (activeTab !== TAB_ID) {
-      alert("Sesi kuis ini sedang aktif di tab lain. Anda tidak bisa mengerjakan kuis di tab ini.");
-      navigate("/dashboard");
+      setTitleModal("Oopps....");
+      setDescriptionModal("Sesi kuis ini sedang aktif di tab lain. Anda tidak bisa mengerjakan kuis di tab ini.")
+      setOpenSubmit(true);
+      setModalType("locked");
       return;
     }
 
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === QUIZ_TAB_KEY && e.newValue !== TAB_ID) {
-        alert("Sesi kuis ini sedang dipakai di tab lain. Tab ini akan ditutup.");
+      if (e.key === QUIZ_TAB_KEY && e.newValue !== TAB_ID) {        
+        toast.error("Sesi kuis ini sedang aktif di tab lain. Anda tidak bisa mengerjakan kuis di tab ini.");
         navigate("/dashboard");
       }
     };
@@ -77,7 +86,7 @@ const QuizPage = () => {
       const response = await fetchAPI("/quiz/active");
       if (handleApi401(response, navigate)) return;
       if (!response.success) {
-        alert(response.message);
+        toast.error(response.message);
         navigate("/dashboard");
         return;
       }
@@ -90,14 +99,14 @@ const QuizPage = () => {
       const secondsLeft = Math.floor((expireTime - now) / 1000);
 
       if (secondsLeft <= 0) {
-        alert("Waktu kuis sudah habis!");
+        toast.error("Waktu kuis sudah habis!");
         await submitQuizProcess(data);
         navigate("/dashboard");
       } else {
         setTimeLeft(secondsLeft);
       }
     } catch (error:any) {
-      alert(error.message);
+      toast.error(error.message);
       navigate("/dashboard");
     } finally {
       setIsLoading(false);
@@ -167,12 +176,24 @@ const QuizPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!window.confirm("Yakin ingin menyelesaikan kuis ini?")) return;
-    await submitQuizProcess();
+    if (!session) return;
+
+    const allAnswered = session.questions.every(
+      q => answers[q.question_number] && answers[q.question_number] !== ""
+    );
+
+    if (!allAnswered && timeLeft > 0) {
+      toast.error("Anda harus menjawab semua soal sebelum mengirim kuis!");
+      return;
+    }
+    setTitleModal("Konfirmasi Submit Kuis");
+    setDescriptionModal("Yakin ingin menyelesaikan kuis ini ? Jangan lupa untuk memeriksa kembali jawaban anda")
+    setOpenSubmit(true);
+    
   };
 
   const handleAutoSubmit = async () => {
-    alert("Waktu habis! Jawaban Anda akan dikirim otomatis.");
+    toast.error("Waktu habis! Jawaban Anda akan dikirim otomatis.");
     await submitQuizProcess();
   };
 
@@ -193,24 +214,22 @@ const QuizPage = () => {
       });
       if (handleApi401(res, navigate)) return;
       if (!res.success) {
-        alert(res.message);
+        toast.error(res.message);
         return;
       }
 
       if (session) {
-        releaseQuizLock(sessionData.session_id);
-        localStorage.removeItem(`quiz_answers_${session.session_id}`);
         const finalResult = await fetchAPI(`/quiz/result/${session.session_id}`, {
           method: "GET"
         });
+        setQuizResult(finalResult.data);
 
-        console.log("Hasil Akhir:", finalResult);
-        alert("Hasil Akhir");
-      }      
-      navigate("/dashboard");
+        releaseQuizLock(sessionData.session_id);
+        localStorage.removeItem(`quiz_answers_${session.session_id}`);
+      }
       
     } catch (error: any) {
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setIsLoading(false);
     }
@@ -223,6 +242,59 @@ const QuizPage = () => {
     }
   };
 
+  if (quizResult) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">{quizResult.result.subtest_name}</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">          
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Score</p>
+            <p className="text-4xl font-bold text-white mt-2">{quizResult.result.score}</p>
+          </div>
+
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Persentase</p>
+            <p className="text-4xl font-bold text-white mt-2">{quizResult.result.percentage}%</p>
+          </div>
+
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Total Soal</p>
+            <p className="text-2xl font-bold text-white mt-1">{quizResult.result.total_questions}</p>
+          </div>
+
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Jawaban Benar</p>
+            <p className="text-2xl font-bold text-white mt-1">{quizResult.result.correct_answers}</p>
+          </div>
+
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Total Waktu</p>
+            <p className="text-2xl font-bold text-white mt-1">{quizResult.result.total_time_seconds}s</p>
+          </div>
+
+          <div className="p-6 rounded-xl shadow-lg bg-gradient-to-tl from-cyan-200 to-blue-600 flex flex-col items-center justify-center">
+            <p className="text-white text-lg font-semibold">Rata-rata Waktu/Soal</p>
+            <p className="text-2xl font-bold text-white mt-1">{quizResult.result.average_time_per_question}s</p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-700 mb-2">
+            Selesai pada: {new Date(quizResult.result.completed_at).toLocaleString()}
+          </p>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="mt-4 px-6 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+          >
+            Kembali ke Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return <div style={{ textAlign: "center", marginTop: "50px" }}>Memuat Kuis...</div>;
   }
@@ -231,97 +303,119 @@ const QuizPage = () => {
   const currentQuestion = session.questions[currentQuestionIndex];
 
   return (
-    <div style={{ maxWidth: "800px", margin: "20px auto", padding: "20px", fontFamily: "sans-serif" }}>      
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", paddingBottom: "10px", borderBottom: "1px solid #ccc" }}>
+    <div className="w-full min-h-screen p-4 flex flex-col gap-6 font-sans">
+      <div className="p-8">
+       <Modal
+  open={openSubmit}
+  setOpen={setOpenSubmit}
+  title={titleModal}
+  description={descriptionModal}
+  primaryAction={{
+    label: modalType === "locked" ? "Kembali ke Dashboard" : "Ya",
+    onClick: () => {
+      if (modalType === "locked") {
+        navigate("/dashboard");
+      } else {
+        submitQuizProcess();
+      }
+    },
+    color: "blue",
+  }}
+  secondaryAction={modalType === "locked" ? undefined : {
+    label: "Batal",
+    onClick: () => setOpenSubmit(false),
+  }}
+/>
+
+      </div>
+      <div className="flex justify-between items-center border-b border-gray-300 pb-2">
         <div>
-          <h2 style={{ margin: 0 }}>{session.subtest_name}</h2>
-          <small>Soal {currentQuestionIndex + 1} dari {session.questions.length}</small>
+          <h2 className="text-2xl font-semibold text-gray-800">{session.subtest_name}</h2>
+          <small className="text-gray-500">Soal {currentQuestionIndex + 1} dari {session.questions.length}</small>
         </div>
-        <div style={{ fontSize: "1.5rem", fontWeight: "bold", color: timeLeft < 60 ? "red" : "black" }}>
+        <div className={`text-xl font-bold ${timeLeft < 60 ? 'text-red-500' : 'text-gray-800'}`}>
           {formatTime(timeLeft)}
         </div>
       </div>
 
-      <div style={{ marginBottom: "30px" }}>
-        <h3 style={{ marginBottom: "20px" }}>
-          {currentQuestion.question_number}. {currentQuestion.question_text}
-        </h3>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {currentQuestion.options.map((option, idx) => {
-                const isSelected = answers[currentQuestion.question_number] === String.fromCharCode(65 + idx);;                
-                return (
-                  <label 
-                      key={idx} 
-                      style={{ 
-                        padding: "15px", 
-                        border: isSelected ? "2px solid #007BFF" : "1px solid #ddd", 
-                        borderRadius: "8px", 
-                        cursor: "pointer",
-                        backgroundColor: isSelected ? "#e6f0ff" : "white",
-                        display: "flex",
-                        alignItems: "center"
-                      }}
-                  >
-                    <input
-                        type="radio"
-                        name={`question-${currentQuestion.question_number}`}
-                        value={String.fromCharCode(65 + idx)}
-                        checked={isSelected}
-                        onChange={() => handleSelectOption(currentQuestion.question_number, idx)}
-                        style={{ marginRight: "10px" }}
-                      />
-                      {option}
-                  </label>
-                );
+      <div className="flex w-full gap-4">
+        <div className="flex-shrink-0 w-24 md:w-28">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+            {session.questions.map((q, idx) => {
+              const isActive = currentQuestionIndex === idx;
+              const isAnswered = answers[q.question_number];
+              return (
+                <div
+                  key={q.question_number}
+                  onClick={() => setCurrentQuestionIndex(idx)}
+                  className={`flex items-center justify-center h-10 border cursor-pointer transition
+                    ${isAnswered ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300'}
+                    ${isActive ? 'ring-2 ring-blue-400' : ''}
+                    rounded-sm
+                  `}
+                >
+                  {q.question_number}
+                </div>
+              );
             })}
+          </div>
         </div>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
-        <button
-            onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-            disabled={currentQuestionIndex === 0}
-            style={{ padding: "10px 20px", cursor: "pointer" }}
-        >
-          Sebelumnya
-        </button>
 
-        {currentQuestionIndex < session.questions.length - 1 ? (
+        <div className="flex-1">
+          <h3 className="text-lg font-medium text-gray-700 mb-4">
+            {currentQuestion.question_number}. {currentQuestion.question_text}
+          </h3>
+
+          <div className="flex flex-col gap-3">
+            {currentQuestion.options.map((option, idx) => {
+              const isSelected = answers[currentQuestion.question_number] === String.fromCharCode(65 + idx);
+              return (
+                <label
+                  key={idx}
+                  className={`flex items-center px-4 py-3 border rounded-sm cursor-pointer transition
+                    ${isSelected ? 'bg-blue-50 border-blue-400' : 'border-gray-300 hover:bg-gray-50'}
+                  `}
+                >
+                  <input
+                    type="radio"
+                    name={`question-${currentQuestion.question_number}`}
+                    value={String.fromCharCode(65 + idx)}
+                    checked={isSelected}
+                    onChange={() => handleSelectOption(currentQuestion.question_number, idx)}
+                    className="mr-3 accent-blue-500"
+                  />
+                  <span className="text-gray-700">{option}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-between mt-6">
             <button
-                onClick={() => setCurrentQuestionIndex((prev) => Math.min(session.questions.length - 1, prev + 1))}
-                style={{ padding: "10px 20px", cursor: "pointer", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "4px" }}
+              onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+              disabled={currentQuestionIndex === 0}
+              className="px-4 py-2 rounded-sm border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              Selanjutnya
+              Sebelumnya
             </button>
-        ) : (
-            <button
+
+            {currentQuestionIndex < session.questions.length - 1 ? (
+              <button
+                onClick={() => setCurrentQuestionIndex(prev => Math.min(session.questions.length - 1, prev + 1))}
+                className="px-3 py-2 rounded-sm bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                Selanjutnya
+              </button>
+            ) : (
+              <button
                 onClick={handleSubmit}
-                style={{ padding: "10px 20px", cursor: "pointer", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "4px" }}
-            >
-              Selesaikan Kuis
-            </button>
-        )}
-      </div>
-
-      <div style={{ marginTop: "30px", display: "flex", gap: "5px", flexWrap: "wrap" }}>
-        {session.questions.map((q, idx) => (
-            <div 
-              key={q.question_number}
-              onClick={() => setCurrentQuestionIndex(idx)}
-              style={{
-                width: "30px", height: "30px", 
-                display: "flex", alignItems: "center", justifyContent: "center",
-                border: "1px solid #ccc", borderRadius: "4px",
-                backgroundColor: answers[q.question_number] ? "#007BFF" : "white",
-                color: answers[q.question_number] ? "white" : "black",
-                cursor: "pointer",
-                fontWeight: currentQuestionIndex === idx ? "bold" : "normal",
-                outline: currentQuestionIndex === idx ? "2px solid black" : "none"
-              }}
-            >
-              {q.question_number}
-            </div>
-        ))}
+                className="px-3 py-2 rounded-sm bg-green-600 text-white hover:bg-green-700 transition"
+              >
+                Submit
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

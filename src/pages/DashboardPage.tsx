@@ -144,25 +144,25 @@ const DashboardPage = () => {
   return (
     <div className="max-w-[1200px] mx-auto px-4 py-6">
       <div className="p-8">
-      <Modal
-        open={open}
-        setOpen={setOpen}
-        title="Kuis Belum Selesai"
-        description="Anda masih memiliki sesi kuis yang belum selesai. Lanjutkan kuis tersebut?"
-        primaryAction={{
-          label: "Ya",
-          onClick: () => {
-            setOpen(false)
-            navigate("/quiz");
-          },
-          color: "yellow",
-        }}
-        secondaryAction={{
-          label: "Batal",
-          onClick: () => setOpen(false),
-        }}
-      />
-    </div>
+        <Modal
+          open={open}
+          setOpen={setOpen}
+          title="Kuis Belum Selesai"
+          description="Anda masih memiliki sesi kuis yang belum selesai. Lanjutkan kuis tersebut?"
+          primaryAction={{
+            label: "Ya",
+            onClick: () => {
+              setOpen(false)
+              navigate("/quiz");
+            },
+            color: "yellow",
+          }}
+          secondaryAction={{
+            label: "Batal",
+            onClick: () => setOpen(false),
+          }}
+        />
+      </div>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
         <h1 className="text-3xl font-bold text-gray-800">Dashboard Ambis</h1>
         <button
