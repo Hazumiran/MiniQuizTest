@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
-import { useCallback } from "react";
 
 interface Subtest {
   id: number;
@@ -17,44 +16,44 @@ const DashboardPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
-  const handleLogout = useCallback(async () => {    
-    await fetchAPI("/auth/logout", { method: "POST" });
-      localStorage.removeItem("accessToken");
+  const handleLogout = async () => {        
+    await fetchAPI("/auth/logout", { method: "POST" }, true);
+    localStorage.removeItem("accessToken");
+    navigate("/login", { replace: true });
+  }
+
+  const getSubtests = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
       navigate("/login");
-  }, [navigate]);
+      return;
+    }
+
+    try {
+      const data = await fetchAPI("/subtests", {
+        method: "GET"
+      });
+
+      setSubtests(data.data || []);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const parsedError = JSON.parse(error.message);
+      setErrorMsg(parsedError.message);      
+
+      if (parsedError.code === "INVALID_TOKEN" || parsedError.httpCode === 401) {
+          handleLogout();
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const getSubtests = async () => {
-      const token = localStorage.getItem("accessToken");
-
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const data = await fetchAPI("/subtests", {
-          method: "GET"
-        });
-
-        console.log("Subtests Data:", data);
-        setSubtests(data.data || []);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        console.error("Dashboard Error:", error);
-        setErrorMsg(error.message || "Gagal memuat data kuis.");
-
-        if (error.message.includes("401") || error.message.includes("Unauthorized")) {
-            handleLogout();
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     getSubtests();
-  }, [navigate, handleLogout]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStartQuiz = async (subtestId:string) => {
     const token = localStorage.getItem("accessToken");

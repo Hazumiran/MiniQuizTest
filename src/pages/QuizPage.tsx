@@ -40,6 +40,7 @@ const QuizPage = () => {
 
         if (secondsLeft <= 0) {
             alert("Waktu kuis sudah habis!");
+            await submitQuizProcess(data?.questions.length);
             navigate("/dashboard");
         } else {
             setTimeLeft(secondsLeft);
@@ -97,12 +98,22 @@ const QuizPage = () => {
     await submitQuizProcess();
   };
 
-  const submitQuizProcess = async () => {
+  const submitQuizProcess = async (activequizlength?:number) => {
     setIsLoading(true);
+    const emptyAnswers = Object.fromEntries(
+      Array.from({ length: activequizlength || 0 }, (_, i) => [
+        String(i + 1),
+        ""
+      ])
+    );
+    
+    if(Object.keys(answers).length === 0){
+        setAnswers(emptyAnswers);
+    }
     try {
       await fetchAPI("/quiz/submit", {
         method: "POST",
-        body: JSON.stringify({ answers: answers }),
+        body: JSON.stringify({ answers: Object.keys(answers).length === 0 ? emptyAnswers : answers }),
       });
 
       alert("Kuis Selesai! Jawaban berhasil dikirim.");
@@ -171,7 +182,6 @@ const QuizPage = () => {
             })}
         </div>
       </div>
-
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "40px" }}>
         <button
             onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}

@@ -28,7 +28,7 @@ const LoginPage = () => {
       
       localStorage.setItem("accessToken", token);
 
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
@@ -39,10 +39,12 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("accessToken")) {
-      navigate("/dashboard");
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      navigate("/dashboard", { replace: true });
     }
-  }, [navigate]);
+    // localStorage.setItem("accessToken", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjk2OGQ5NDAzNzJjYmEzZmE1NDU2YTRhIiwicm9sZSI6InVzZXIiLCJpc3MiOiJtaW5pLXF1aXotYW1iaXMiLCJleHAiOjE3Njg2NjE5NTQsImlhdCI6MTc2ODU3NTU1NH0.qNG-4xaR9dECbQ59wuAKedzPnuW2s_2n8ga6o3Fcj40")
+  }, []);
 
   return (
     <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
