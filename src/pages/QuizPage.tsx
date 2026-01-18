@@ -24,19 +24,18 @@ const QuizPage = () => {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  
+
+  const buildEmptyAnswers = (questions: Question[]) =>{    
+    return Object.fromEntries(
+      questions.map(q => [String(q.question_number), ""])
+    );
+  }
+
   const loadActiveQuiz = async () => {
     try {
       const response = await fetchAPI("/quiz/active");
       const data = response.data;
-      
       setSession(data);
-      setAnswers(Object.fromEntries(
-        Array.from({ length: data.questions.length || 0 }, (_, i) => [
-          String(i + 1),
-          ""
-        ])
-      ));
 
       const expireTime = new Date(data.expires_at).getTime();
       const now = new Date().getTime();
@@ -44,7 +43,7 @@ const QuizPage = () => {
 
       if (secondsLeft <= 0) {
           alert("Waktu kuis sudah habis!");
-          await submitQuizProcess();
+          await submitQuizProcess(data);
           navigate("/dashboard");
       } else {
           setTimeLeft(secondsLeft);
@@ -57,7 +56,7 @@ const QuizPage = () => {
       setIsLoading(false);
     }
   };
-  
+
   useEffect(() => {
     loadActiveQuiz();
   }, []);
@@ -76,7 +75,36 @@ const QuizPage = () => {
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [timeLeft, session]);
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const saved = localStorage.getItem(
+      `quiz_answers_${session.session_id}`
+    );
+
+    if(saved) {
+      setAnswers(JSON.parse(saved));
+    }else{
+      setAnswers(buildEmptyAnswers(session.questions));
+    }
+
+    localStorage.setItem(
+      `quiz_answers_${session.session_id}`,
+      JSON.stringify(answers)
+    );
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    localStorage.setItem(
+      `quiz_answers_${session.session_id}`,
+      JSON.stringify(answers)
+    );
+  }, [answers, session]);
+
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -92,7 +120,6 @@ const QuizPage = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(answers);
     if (!window.confirm("Yakin ingin menyelesaikan kuis ini?")) return;
     await submitQuizProcess();
   };
@@ -102,15 +129,26 @@ const QuizPage = () => {
     await submitQuizProcess();
   };
 
-  const submitQuizProcess = async () => {
-    setIsLoading(true);
+  const submitQuizProcess = async (sessionData: QuizSession = session as QuizSession) => {
+    setIsLoading(true);          
     try {
       await fetchAPI("/quiz/submit", {
         method: "POST",
-        body: JSON.stringify({ answers: answers }),
+        body: JSON.stringify({ answers: Object.keys(answers).length !== 0 ? answers : buildEmptyAnswers(sessionData.questions) }),
       });
-      alert("Kuis Selesai! Jawaban berhasil dikirim.");
+      if (session) {
+        localStorage.removeItem(
+          `quiz_answers_${session.session_id}`
+        );
+        const finalResult = await fetchAPI(`/quiz/result/${session.session_id}`, {
+          method: "GET"
+        });
+
+        console.log("Hasil Akhir:", finalResult);
+      }
+      // alert("Kuis Selesai! Jawaban berhasil dikirim.");
       navigate("/dashboard");
+      
     } catch (error: any) {
       alert(error.message);
     } finally {
