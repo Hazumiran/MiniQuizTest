@@ -142,7 +142,7 @@ const DashboardPage = () => {
   }, [search]);
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
+    <div style={{margin: "0 auto", padding: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px" }}>
         <h1>Dashboard Ambis</h1>
         <button 
