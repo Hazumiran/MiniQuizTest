@@ -4,6 +4,8 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import DashboardPage from "../pages/DashboardPage";
 import QuizPage from "../pages/QuizPage";
+import HistoryPage from "../pages/HistoryPage";
+import HistoryDetailPage from "../pages/HistoryDetailPage";
 import MainLayout from "../layout/MainLayout";
 
 function RoutesPage() {
@@ -21,6 +23,8 @@ function RoutesPage() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/quiz" element={<QuizPage />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/history/:session_id" element={<HistoryDetailPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

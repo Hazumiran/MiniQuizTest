@@ -6,6 +6,7 @@ import { fetchAPI } from "../api";
 import { handleApi401 } from "../utils/authHelper";
 import toast from "react-hot-toast";
 import Modal from "../components/Modal";
+import LoadingAnimation from "../components/LoadingAnimation";
 
 interface Question {
   question_number: number;
@@ -296,7 +297,7 @@ const QuizPage = () => {
   }
 
   if (isLoading) {
-    return <div style={{ textAlign: "center", marginTop: "50px" }}>Memuat Kuis...</div>;
+    return <LoadingAnimation/>;
   }
 
   if (!session) return null;
@@ -306,26 +307,26 @@ const QuizPage = () => {
     <div className="w-full min-h-screen p-4 flex flex-col gap-6 font-sans">
       <div className="p-8">
        <Modal
-  open={openSubmit}
-  setOpen={setOpenSubmit}
-  title={titleModal}
-  description={descriptionModal}
-  primaryAction={{
-    label: modalType === "locked" ? "Kembali ke Dashboard" : "Ya",
-    onClick: () => {
-      if (modalType === "locked") {
-        navigate("/dashboard");
-      } else {
-        submitQuizProcess();
-      }
-    },
-    color: "blue",
-  }}
-  secondaryAction={modalType === "locked" ? undefined : {
-    label: "Batal",
-    onClick: () => setOpenSubmit(false),
-  }}
-/>
+          open={openSubmit}
+          setOpen={setOpenSubmit}
+          title={titleModal}
+          description={descriptionModal}
+          primaryAction={{
+            label: modalType === "locked" ? "Kembali ke Dashboard" : "Ya",
+            onClick: () => {
+              if (modalType === "locked") {
+                navigate("/dashboard");
+              } else {
+                submitQuizProcess();
+              }
+            },
+            color: "blue",
+          }}
+          secondaryAction={modalType === "locked" ? undefined : {
+            label: "Batal",
+            onClick: () => setOpenSubmit(false),
+          }}
+        />
 
       </div>
       <div className="flex justify-between items-center border-b border-gray-300 pb-2">
