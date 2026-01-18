@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
 import { handleApi401 } from "../utils/authHelper";
@@ -24,13 +24,53 @@ const QuizPage = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});  
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
+  
   const navigate = useNavigate();
+
+  const tabIdRef = useRef<string>(
+    sessionStorage.getItem("QUIZ_TAB_ID") || crypto.randomUUID()
+  );
+  if (!sessionStorage.getItem("QUIZ_TAB_ID")) {
+    sessionStorage.setItem("QUIZ_TAB_ID", tabIdRef.current);
+  }
+  const TAB_ID = tabIdRef.current;
 
   const buildEmptyAnswers = (questions: Question[]) =>{    
     return Object.fromEntries(
       questions.map(q => [String(q.question_number), ""])
     );
   }
+
+  useEffect(() => {
+    if (!session) return;
+
+    const QUIZ_TAB_KEY = `ACTIVE_QUIZ_TAB_${session.session_id}`;
+    const activeTab = localStorage.getItem(QUIZ_TAB_KEY);
+
+    if (!activeTab) {
+      localStorage.setItem(QUIZ_TAB_KEY, TAB_ID);
+    } else if (activeTab !== TAB_ID) {
+      alert("Sesi kuis ini sedang aktif di tab lain. Anda tidak bisa mengerjakan kuis di tab ini.");
+      navigate("/dashboard");
+      return;
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === QUIZ_TAB_KEY && e.newValue !== TAB_ID) {
+        alert("Sesi kuis ini sedang dipakai di tab lain. Tab ini akan ditutup.");
+        navigate("/dashboard");
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      if (localStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
+        localStorage.removeItem(QUIZ_TAB_KEY);
+      }
+    };
+  }, [session, TAB_ID, navigate]);
 
   const loadActiveQuiz = async () => {
     try {
@@ -56,7 +96,6 @@ const QuizPage = () => {
       } else {
         setTimeLeft(secondsLeft);
       }
-
     } catch (error:any) {
       alert(error.message);
       navigate("/dashboard");
@@ -158,22 +197,28 @@ const QuizPage = () => {
       }
 
       if (session) {
-        localStorage.removeItem(
-          `quiz_answers_${session.session_id}`
-        );
+        releaseQuizLock(sessionData.session_id);
+        localStorage.removeItem(`quiz_answers_${session.session_id}`);
         const finalResult = await fetchAPI(`/quiz/result/${session.session_id}`, {
           method: "GET"
         });
 
         console.log("Hasil Akhir:", finalResult);
-      }
-      // alert("Kuis Selesai! Jawaban berhasil dikirim.");
+        alert("Hasil Akhir");
+      }      
       navigate("/dashboard");
       
     } catch (error: any) {
       alert(error.message);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const releaseQuizLock = (sessionId: string) => {
+    const QUIZ_TAB_KEY = `ACTIVE_QUIZ_TAB_${sessionId}`;
+    if (localStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
+      localStorage.removeItem(QUIZ_TAB_KEY);
     }
   };
 
