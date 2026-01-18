@@ -52,61 +52,60 @@ const LoginPage = () => {
   }, []);
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
-      <h2 style={{ textAlign: "center" }}>Login Quiz Ambis</h2>
-      
-      {errorMsg && (
-        <div style={{ backgroundColor: "#ffdddd", color: "red", padding: "10px", marginBottom: "15px", borderRadius: "4px" }}>
-          {errorMsg}
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gray-100">
+      <div className="w-full max-w-md mx-auto mt-12 p-8 bg-white border border-gray-200 rounded-xl shadow-lg">
+        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Login Quiz Ambis</h2>
+
+        {errorMsg && (
+          <div className="bg-red-100 text-red-700 px-4 py-2 mb-5 rounded-md border border-red-200 shadow-sm animate-pulse">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="user@example.com"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Password:</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Masukan password"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full py-3 rounded-lg font-semibold text-white text-lg transition duration-300 ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed shadow-inner"
+                : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg"
+            }`}
+          >
+            {isLoading ? "Memproses..." : "Masuk"}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center text-sm text-gray-600">
+          Belum punya akun?{" "}
+          <a href="/register" className="text-blue-600 font-medium hover:underline hover:text-blue-700">
+            Daftar di sini
+          </a>
         </div>
-      )}
-
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="user@example.com"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Masukan password"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          disabled={isLoading}
-          style={{ 
-            width: "100%", 
-            padding: "10px", 
-            backgroundColor: isLoading ? "#ccc" : "#007BFF", 
-            color: "white", 
-            border: "none", 
-            borderRadius: "4px",
-            cursor: isLoading ? "not-allowed" : "pointer" 
-          }}
-        >
-          {isLoading ? "Memproses..." : "Masuk"}
-        </button>
-      </form>
-
-      <div style={{ marginTop: "15px", textAlign: "center" }}>
-        <small>
-          Belum punya akun? <a href="/register" style={{ color: "#007BFF" }}>Daftar di sini</a>
-        </small>
       </div>
     </div>
   );
