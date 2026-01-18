@@ -10,10 +10,18 @@ interface Subtest {
   duration: number;
 }
 
+interface ActiveQuiz {
+  session_id: string;
+  subtest_name: string;
+  expires_at: string;
+  questions: [];
+}
+
 const DashboardPage = () => {
   const [subtests, setSubtests] = useState<Subtest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [activeQuiz, setActiveQuiz] = useState({} as ActiveQuiz);
   const navigate = useNavigate();
 
   const handleLogout = async () => {        
@@ -50,8 +58,16 @@ const DashboardPage = () => {
     }
   };
 
+  const getActiveQuiz = async () => {
+    const responseActiveQuiz =await fetchAPI("/quiz/active", {
+        method: "GET"
+    });
+    setActiveQuiz(responseActiveQuiz.data || null);
+  };
+
   useEffect(() => {
     getSubtests();
+    getActiveQuiz();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -68,8 +84,6 @@ const DashboardPage = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error:any) {
-      console.error("Gagal memulai kuis:", error);
-
       if (error.message.includes("409") || error.message.toLowerCase().includes("active quiz")) {
         const confirmResume = window.confirm(
           "Anda masih memiliki sesi kuis yang belum selesai. Lanjutkan kuis tersebut?"
@@ -101,6 +115,13 @@ const DashboardPage = () => {
       {errorMsg && (
         <div style={{ backgroundColor: "#ffe6e6", color: "red", padding: "10px", borderRadius: "5px", marginBottom: "20px" }}>
           {errorMsg}
+        </div>
+      )}
+      {Object.keys(activeQuiz).length !== 0 && (
+        <div style={{ backgroundColor: "#fff3cd", color: "#856404", padding: "15px", borderRadius: "5px", marginBottom: "20px", border: "1px solid #ffeeba" }}>
+          <strong>Anda Belum Menyelesaikan Kuis {activeQuiz?.subtest_name}!</strong> 
+          <br />
+          Klik disini untuk melanjutkan kuis yang sedang berjalan <button onClick={() => navigate("/quiz")}>Lanjutkan Quiz</button>.
         </div>
       )}
 

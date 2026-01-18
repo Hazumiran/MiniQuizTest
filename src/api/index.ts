@@ -27,7 +27,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, auth
     message: data.error?.message,
   });
   if (!response.ok) {
-    throw new Error(result || "Server Error");
+    throw new Error(result);
   }
 
   return data;
