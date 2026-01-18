@@ -1,8 +1,13 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://apiquiz.ambisiusacademy.com/api/:path*"
+      "src": "/api/(.*)",
+      "dest": "https://apiquiz.ambisiusacademy.com/api/$1"
+    },
+    {
+      "src": "/[^.]+",
+      "dest": "/",
+      "status": 200
     }
   ]
 }
