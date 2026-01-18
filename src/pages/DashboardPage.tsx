@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
+import { handleApi401 } from "../utils/authHelper";
 
 interface Subtest {
   id: number;
@@ -41,10 +42,9 @@ const DashboardPage = () => {
         method: "GET"
       });
 
+      if (handleApi401(res, navigate)) return;
+      
       if (!res.success) {
-        if (res.code === "INVALID_TOKEN" || res.httpCode === 401) {
-            handleLogout();
-        }
         setErrorMsg(res.message);
         return;
       }
@@ -59,9 +59,10 @@ const DashboardPage = () => {
   };
 
   const getActiveQuiz = async () => {
-    const responseActiveQuiz =await fetchAPI("/quiz/active", {
+    const responseActiveQuiz = await fetchAPI("/quiz/active", {
         method: "GET"
     });
+    if (handleApi401(responseActiveQuiz, navigate)) return;
     if (responseActiveQuiz.success) {
       setActiveQuiz(responseActiveQuiz.data || null);
     }
@@ -72,6 +73,7 @@ const DashboardPage = () => {
       const res = await fetchAPI(`/quiz/start/${subtest?.id}`, {
         method: "GET",
       });
+      if (handleApi401(res, navigate)) return;
 
       if (!res.success) {
         // console.log(subtest);
@@ -100,6 +102,8 @@ const DashboardPage = () => {
         method: "GET"
       });
 
+      if (handleApi401(res, navigate)) return;
+
       if (!res.success) {        
         setErrorMsg(res.message);
         return;
@@ -127,13 +131,6 @@ const DashboardPage = () => {
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
     getSubtests();
     getActiveQuiz();
     getHistoryQuiz();

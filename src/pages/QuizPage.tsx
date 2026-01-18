@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
+import { handleApi401 } from "../utils/authHelper";
 
 interface Question {
   question_number: number;
@@ -34,6 +35,7 @@ const QuizPage = () => {
   const loadActiveQuiz = async () => {
     try {
       const response = await fetchAPI("/quiz/active");
+      if (handleApi401(response, navigate)) return;
       if (!response.success) {
         alert(response.message);
         navigate("/dashboard");
@@ -48,11 +50,11 @@ const QuizPage = () => {
       const secondsLeft = Math.floor((expireTime - now) / 1000);
 
       if (secondsLeft <= 0) {
-          alert("Waktu kuis sudah habis!");
-          await submitQuizProcess(data);
-          navigate("/dashboard");
+        alert("Waktu kuis sudah habis!");
+        await submitQuizProcess(data);
+        navigate("/dashboard");
       } else {
-          setTimeLeft(secondsLeft);
+        setTimeLeft(secondsLeft);
       }
 
     } catch (error:any) {
@@ -149,6 +151,7 @@ const QuizPage = () => {
         method: "POST",
         body: JSON.stringify({ answers: finalAnswers }),
       });
+      if (handleApi401(res, navigate)) return;
       if (!res.success) {
         alert(res.message);
         return;
