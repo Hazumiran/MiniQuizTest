@@ -29,6 +29,7 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, auth
       httpCode: response.status,
       code: data.error?.code,
       message: data.error?.message,
+      details: data.error?.details,
     };
   }
 

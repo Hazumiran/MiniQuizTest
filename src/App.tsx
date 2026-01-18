@@ -1,9 +1,13 @@
 import './App.css'
+import Toast from './components/Toast'
 import RoutesPage from './routes'
 
 function App() {
   return (
-    <RoutesPage/>
+    <>
+      <Toast/>
+      <RoutesPage />
+    </>
   )
 }
 

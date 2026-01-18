@@ -1,7 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api"; 
+import AuthCard from "../components/AuthCard";
+import toast from "react-hot-toast";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -27,10 +29,10 @@ const RegisterPage = () => {
         }),
       });
       if (!res.success) {
-        setErrorMsg(res.message || "Register Error");
+        setErrorMsg(res.details || "Register Error");
         return;
       }
-      alert("Registrasi Berhasil! Silakan Login dengan akun baru Anda.");
+      toast.success("Registrasi Berhasil! Silakan Login dengan akun baru Anda.");
       navigate("/login");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,76 +52,51 @@ const RegisterPage = () => {
 
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
-      <h2 style={{ textAlign: "center" }}>Daftar Akun Baru</h2>
-
-      {errorMsg && (
-        <div style={{ backgroundColor: "#ffe6e6", color: "red", padding: "10px", marginBottom: "15px", borderRadius: "4px" }}>
-          {errorMsg}
-        </div>
-      )}
-
-      <form onSubmit={handleRegister}>
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Nama Lengkap:</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="Nama Lengkap"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Email:</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="user@example.com"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ display: "block", marginBottom: "5px" }}>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Password kuat (min 8 karakter)"
-            style={{ width: "100%", padding: "8px", boxSizing: "border-box" }}
-          />
-        </div>
-
-        <button 
-          type="submit" 
+    <AuthCard
+      title="Daftar Akun Baru"
+      errorMsg={errorMsg}
+      footerText="Sudah punya akun?"
+      footerLink={{ to: "/login", label: "Login di sini" }}
+    >
+      <form onSubmit={handleRegister} className="space-y-5">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nama Lengkap"
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="user@example.com"
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+        />
+        <button
+          type="submit"
           disabled={isLoading}
-          style={{ 
-            width: "100%", 
-            padding: "10px", 
-            backgroundColor: isLoading ? "#ccc" : "#28a745",
-            color: "white", 
-            border: "none", 
-            borderRadius: "4px",
-            cursor: isLoading ? "not-allowed" : "pointer",
-            fontWeight: "bold"
-          }}
+          className={`w-full py-3 rounded-lg font-semibold text-white text-lg transition duration-300 ${
+            isLoading
+              ? "bg-gray-400 cursor-not-allowed shadow-inner"
+              : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg"
+          }`}
         >
           {isLoading ? "Memproses..." : "Daftar Sekarang"}
         </button>
       </form>
+    </AuthCard>
 
-      <div style={{ marginTop: "15px", textAlign: "center" }}>
-        <small>
-          Sudah punya akun? <Link to="/login" style={{ color: "#007BFF" }}>Login di sini</Link>
-        </small>
-      </div>
-    </div>
   );
 };
 
