@@ -34,6 +34,12 @@ const QuizPage = () => {
   const loadActiveQuiz = async () => {
     try {
       const response = await fetchAPI("/quiz/active");
+      if (!response.success) {
+        alert(response.message);
+        navigate("/dashboard");
+        return;
+      }
+
       const data = response.data;
       setSession(data);
 
@@ -105,7 +111,6 @@ const QuizPage = () => {
     );
   }, [answers, session]);
 
-
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -130,12 +135,25 @@ const QuizPage = () => {
   };
 
   const submitQuizProcess = async (sessionData: QuizSession = session as QuizSession) => {
-    setIsLoading(true);          
+    setIsLoading(true);
     try {
-      await fetchAPI("/quiz/submit", {
+      const savedAnswers = localStorage.getItem(
+        `quiz_answers_${sessionData.session_id}`
+      );
+
+      const finalAnswers = savedAnswers
+        ? JSON.parse(savedAnswers)
+        : buildEmptyAnswers(sessionData.questions);
+        
+      const res = await fetchAPI("/quiz/submit", {
         method: "POST",
-        body: JSON.stringify({ answers: Object.keys(answers).length !== 0 ? answers : buildEmptyAnswers(sessionData.questions) }),
+        body: JSON.stringify({ answers: finalAnswers }),
       });
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+
       if (session) {
         localStorage.removeItem(
           `quiz_answers_${session.session_id}`

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api";
@@ -22,6 +23,10 @@ const DashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [activeQuiz, setActiveQuiz] = useState({} as ActiveQuiz);
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalAttemptedQuiz, setTotalAttemptedQuiz] = useState(0);
+  const ITEMS_PER_PAGE = 5;
   const navigate = useNavigate();
 
   const handleLogout = async () => {        
@@ -30,29 +35,24 @@ const DashboardPage = () => {
     navigate("/login", { replace: true });
   }
 
-  const getSubtests = async () => {
-    const token = localStorage.getItem("accessToken");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
+  const getSubtests = async () => {    
     try {
-      const data = await fetchAPI("/subtests", {
+      const res = await fetchAPI("/subtests", {
         method: "GET"
       });
 
-      setSubtests(data.data || []);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      const parsedError = JSON.parse(error.message);
-      setErrorMsg(parsedError.message);      
-
-      if (parsedError.code === "INVALID_TOKEN" || parsedError.httpCode === 401) {
-          handleLogout();
+      if (!res.success) {
+        if (res.code === "INVALID_TOKEN" || res.httpCode === 401) {
+            handleLogout();
+        }
+        setErrorMsg(res.message);
+        return;
       }
+
+      setSubtests(res.data || []);
+
+    } catch (error: any) {
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -62,29 +62,19 @@ const DashboardPage = () => {
     const responseActiveQuiz =await fetchAPI("/quiz/active", {
         method: "GET"
     });
-    setActiveQuiz(responseActiveQuiz.data || null);
+    if (responseActiveQuiz.success) {
+      setActiveQuiz(responseActiveQuiz.data || null);
+    }
   };
 
-  useEffect(() => {
-    getSubtests();
-    getActiveQuiz();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleStartQuiz = async (subtestId:string) => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return navigate("/login");
-
+  const handleStartQuiz = async (subtest:any) => {
     try {
-      await fetchAPI(`/quiz/start/${subtestId}`, {
+      const res = await fetchAPI(`/quiz/start/${subtest?.id}`, {
         method: "GET",
       });
 
-      navigate("/quiz");
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      if (error.message.includes("409") || error.message.toLowerCase().includes("active quiz")) {
+      if (!res.success) {
+        // console.log(subtest);
         const confirmResume = window.confirm(
           "Anda masih memiliki sesi kuis yang belum selesai. Lanjutkan kuis tersebut?"
         );
@@ -92,11 +82,67 @@ const DashboardPage = () => {
         if (confirmResume) {
           navigate("/quiz"); 
         }
-      } else {
-        alert(error.message || "Gagal memulai kuis.");
+
+        return;
       }
+
+      navigate("/quiz");
+
+    } catch (error:any) {
+      console.error(error);
+      alert("Terjadi kesalahan saat memulai kuis.");
     }
   };
+
+  const getHistoryQuiz = async () => {
+    try {
+      const res = await fetchAPI("/quiz/history", {
+        method: "GET"
+      });
+
+      if (!res.success) {        
+        setErrorMsg(res.message);
+        return;
+      }
+
+      setTotalAttemptedQuiz(res.data.total_count || 0);
+
+    } catch (error: any) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const filteredSubtests = subtests.filter((test) =>
+    test.name.toLowerCase().includes(search.toLowerCase()) ||
+    test.description.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredSubtests.length / ITEMS_PER_PAGE);
+
+  const paginatedSubtests = filteredSubtests.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    getSubtests();
+    getActiveQuiz();
+    getHistoryQuiz();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "20px" }}>
@@ -127,21 +173,109 @@ const DashboardPage = () => {
 
       {!isLoading && !errorMsg && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(700px, 1fr))", gap: "20px" }}>
-          {subtests.map((test) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "20px",
+              marginBottom: "30px"
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#007BFF",
+                color: "white",
+                padding: "20px",
+                borderRadius: "10px",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+              }}
+            >
+              <h4 style={{ margin: 0, fontWeight: "normal" }}>Total Kuis Tersedia</h4>
+              <h2 style={{ margin: "10px 0 0" }}>{subtests.length}</h2>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                padding: "20px",
+                borderRadius: "10px",
+                boxShadow: "0 4px 6px rgba(0,0,0,0.1)"
+              }}
+            >
+              <h4 style={{ margin: 0, fontWeight: "normal" }}>
+                Total Kuis Pernah Dikerjakan
+              </h4>
+              <h2 style={{ margin: "10px 0 0" }}>{totalAttemptedQuiz}</h2>
+            </div>
+          </div>
+
+          <input
+            type="text"
+            placeholder="Cari kuis..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              marginBottom: "20px",
+              borderRadius: "6px",
+              border: "1px solid #ccc"
+            }}
+          />
+          {paginatedSubtests.map((test) => (
             <div key={test.id} style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "20px", boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
               <h3 style={{ marginTop: 0 }}>{test.name}</h3>
               <p style={{ color: "#666", fontSize: "14px" }}>{test.description}</p>
               
               <button
                 style={{ width: "100%", padding: "10px", backgroundColor: "#007BFF", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
-                onClick={() => handleStartQuiz(test.id.toString())}
+                onClick={() => handleStartQuiz(test)}
               >
                 Mulai Kuis
               </button>
             </div>
           ))}
-          
-          {subtests.length === 0 && <p>Tidak ada kuis yang tersedia saat ini.</p>}
+          {totalPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "30px" }}>
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  style={{
+                    fontWeight: page === currentPage ? "bold" : "normal",
+                    backgroundColor: page === currentPage ? "#007BFF" : "white",
+                    color: page === currentPage ? "white" : "black",
+                    border: "1px solid #ccc",
+                    padding: "5px 10px",
+                    borderRadius: "4px",
+                    cursor: "pointer"
+                  }}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
+          {paginatedSubtests.length === 0 && (
+            <p style={{ textAlign: "center" }}>
+              Tidak ada kuis yang tersedia.
+            </p>
+          )}
         </div>
       )}
     </div>

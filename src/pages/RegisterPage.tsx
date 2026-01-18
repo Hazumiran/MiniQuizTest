@@ -18,7 +18,7 @@ const RegisterPage = () => {
     setErrorMsg("");
 
     try {
-      await fetchAPI("/auth/register", {
+      const res = await fetchAPI("/auth/register", {
         method: "POST",
         body: JSON.stringify({
           name: name,
@@ -26,13 +26,16 @@ const RegisterPage = () => {
           password: password,
         }),
       });
-
+      if (!res.success) {
+        setErrorMsg(res.message || "Register Error");
+        return;
+      }
       alert("Registrasi Berhasil! Silakan Login dengan akun baru Anda.");
       navigate("/login");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      setErrorMsg(error.message || "Register Error");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }

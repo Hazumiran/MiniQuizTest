@@ -21,13 +21,14 @@ export const fetchAPI = async (endpoint: string, options: RequestInit = {}, auth
   const response = await fetch(`${BASE_URL}${endpoint}`, config);
   
   const data = await response.json();
-  const result = JSON.stringify({
-    httpCode: response.status,
-    code: data.error?.code,
-    message: data.error?.message,
-  });
+
   if (!response.ok) {
-    throw new Error(result);
+    return {
+      success: false,
+      httpCode: response.status,
+      code: data.error?.code,
+      message: data.error?.message,
+    };
   }
 
   return data;

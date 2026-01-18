@@ -17,15 +17,19 @@ const LoginPage = () => {
     setErrorMsg("");
 
     try {
-      const result = await fetchAPI("/auth/login", {
+      const res = await fetchAPI("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           email: email,
           password: password,
         }),
       });
+      if (!res.success) {
+        setErrorMsg(res.message || "Login Error");
+        return;
+      }
 
-      const token = result.data.access_token;
+      const token = res.data.access_token;
       
       localStorage.setItem("accessToken", token);
 
@@ -33,7 +37,7 @@ const LoginPage = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      setErrorMsg(error.message || "Login Error");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
