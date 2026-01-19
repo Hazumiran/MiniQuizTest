@@ -1,73 +1,126 @@
-# React + TypeScript + Vite
+# Mini Quiz App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplikasi web kuis interaktif yang dibangun menggunakan **React**, **Vite**, **TailwindCSS**, dan **TypeScript**. Aplikasi ini menyediakan fitur manajemen pengguna yang aman serta antarmuka yang responsif.
 
-Currently, two official plugins are available:
+## Fitur Utama
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Otentikasi Pengguna**: Login dan Register aman.
+- **Dashboard Kuis**: Tampilan daftar kuis yang tersedia.
+- **Pengerjaan Kuis**: Antarmuka interaktif untuk menjawab soal.
+- **Riwayat (History)**: Melihat hasil dan skor kuis sebelumnya.
+- **Manajemen Profil**: Mengelola data pengguna.
+- **Keamanan Data**: Menggunakan `react-secure-storage` untuk penyimpanan token.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Teknologi yang Digunakan
 
-## Expanding the ESLint configuration
+- [React](https://reactjs.org/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/) (Build tool)
+- [TailwindCSS](https://tailwindcss.com/) (Styling)
+- [React Router DOM](https://reactrouter.com/) (Routing)
+- [React Secure Storage](https://www.npmjs.com/package/react-secure-storage) (Enkripsi LocalStorage)
+- [React Hot Toast](https://react-hot-toast.com/) (Notifikasi)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Cara Menjalankan Project
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Ikuti langkah-langkah berikut untuk menjalankan project ini di komputer lokal Anda.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/Hazumiran/MiniQuizTest.git
+cd mini-quiz
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Install Dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Pastikan Anda sudah menginstall Node.js.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
+```bash
+npm install
+# atau
+yarn install
+```
+
+### 3. Konfigurasi Environment Variable
+
+Buat file `.env` di direktori root project, lalu tambahkan konfigurasi berikut:
+
+```ini
+VITE_URL_BE=/api/v1
+```
+
+path lengkap : https://apiquiz.ambisiusacademy.com/api/v1
+
+karena di vite.config.js pakai proxy untuk menghindari CORS
+```
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      "/api": {
+        target: "https://apiquiz.ambisiusacademy.com",
+        changeOrigin: true,
+        secure: false,
       },
-      // other options...
     },
   },
-])
+})
 ```
+
+
+> **Catatan:** Pastikan variabel dimulai dengan `VITE_` agar dapat dibaca oleh Vite melalui `import.meta.env`.
+
+### 4. Jalankan Development Server
+
+```bash
+npm run dev
+# atau
+yarn dev
+```
+
+Buka browser dan akses: `http://localhost:5173` 
+# atau 
+akses production di : `https://mini-quiz-test.vercel.app/`
+
+---
+
+## Struktur Folder
+
+Berikut adalah gambaran struktur direktori project ini:
+
+```bash
+mini-quiz/
+│
+├── src/
+│   ├── api              
+│   │   └── index.tsx
+│   ├── App.tsx             
+│   ├── main.tsx            
+│   ├── routes/
+│   │   └── RoutesPage.tsx  
+│   ├── pages/              
+│   │   ├── DashboardPage.tsx
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   ├── HistoryPage.tsx
+│   │   └── ProfilePage.tsx
+│   ├── components/         
+│   │   ├── Navbar.tsx
+│   │   ├── Sidebar.tsx
+│   │   ├── Footer.tsx
+│   │   ├── Modal.tsx
+│   │   └── AuthCard.tsx
+│   ├── layout/             
+│   │   └── MainLayout.tsx
+│   └── utils/              
+│       └── authHelper.ts
+│
+├── .env                    
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── vite.config.ts

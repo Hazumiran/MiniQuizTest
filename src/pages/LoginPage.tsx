@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api"; 
 import AuthCard from "../components/AuthCard";
 import secureLocalStorage from "react-secure-storage";
+import toast from "react-hot-toast";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -34,12 +35,12 @@ const LoginPage = () => {
       const token = res.data.access_token;
       
       secureLocalStorage.setItem("accessToken", token);
-
+      toast.success("Login berhasil!");
       navigate("/dashboard", { replace: true });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error(error);
+      toast.error(error.message);      
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +51,7 @@ const LoginPage = () => {
     if (token) {
       navigate("/dashboard", { replace: true });
     }
-    // localStorage.setItem("accessToken", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjk2OGQ5NDAzNzJjYmEzZmE1NDU2YTRhIiwicm9sZSI6InVzZXIiLCJpc3MiOiJtaW5pLXF1aXotYW1iaXMiLCJleHAiOjE3Njg2NjE5NTQsImlhdCI6MTc2ODU3NTU1NH0.qNG-4xaR9dECbQ59wuAKedzPnuW2s_2n8ga6o3Fcj40")
+    // secureLocalStorage.setItem("accessToken", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjk2OGQ5NDAzNzJjYmEzZmE1NDU2YTRhIiwicm9sZSI6InVzZXIiLCJpc3MiOiJtaW5pLXF1aXotYW1iaXMiLCJleHAiOjE3Njg2NjE5NTQsImlhdCI6MTc2ODU3NTU1NH0.qNG-4xaR9dECbQ59wuAKedzPnuW2s_2n8ga6o3Fcj40")
   }, []);
 
   return (

@@ -1,4 +1,5 @@
 import type { NavigateFunction } from "react-router-dom";
+import secureLocalStorage from "react-secure-storage";
 
 let alreadyHandled401 = false;
 export const handleApi401 = (
@@ -7,7 +8,7 @@ export const handleApi401 = (
 ) => {
   if (res.httpCode === 401 && !alreadyHandled401) {
     alreadyHandled401 = true;
-    localStorage.removeItem("accessToken");
+    secureLocalStorage.removeItem("accessToken");
     alert("Sesi Anda telah berakhir. Silakan login kembali.");
     navigate("/login", { replace: true });
     return true;

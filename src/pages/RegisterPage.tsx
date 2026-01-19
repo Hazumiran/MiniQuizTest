@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api"; 
 import AuthCard from "../components/AuthCard";
 import toast from "react-hot-toast";
+import secureLocalStorage from "react-secure-storage";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -44,7 +45,7 @@ const RegisterPage = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = secureLocalStorage.getItem("accessToken");
     if (token) {
       navigate("/dashboard", { replace: true });
     }

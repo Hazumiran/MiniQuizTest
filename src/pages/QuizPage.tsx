@@ -7,6 +7,7 @@ import { handleApi401 } from "../utils/authHelper";
 import toast from "react-hot-toast";
 import Modal from "../components/Modal";
 import LoadingAnimation from "../components/LoadingAnimation";
+import secureLocalStorage from "react-secure-storage";
 
 interface Question {
   question_number: number;
@@ -53,10 +54,10 @@ const QuizPage = () => {
     if (!session) return;
 
     const QUIZ_TAB_KEY = `ACTIVE_QUIZ_TAB_${session.session_id}`;
-    const activeTab = localStorage.getItem(QUIZ_TAB_KEY);
+    const activeTab = secureLocalStorage.getItem(QUIZ_TAB_KEY);
 
     if (!activeTab) {
-      localStorage.setItem(QUIZ_TAB_KEY, TAB_ID);
+      secureLocalStorage.setItem(QUIZ_TAB_KEY, TAB_ID);
     } else if (activeTab !== TAB_ID) {
       setTitleModal("Oopps....");
       setDescriptionModal("Sesi kuis ini sedang aktif di tab lain. Anda tidak bisa mengerjakan kuis di tab ini.")
@@ -76,8 +77,8 @@ const QuizPage = () => {
 
     return () => {
       window.removeEventListener("storage", handleStorage);
-      if (localStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
-        localStorage.removeItem(QUIZ_TAB_KEY);
+      if (secureLocalStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
+        secureLocalStorage.removeItem(QUIZ_TAB_KEY);
       }
     };
   }, [session, TAB_ID, navigate]);
@@ -137,9 +138,9 @@ const QuizPage = () => {
   useEffect(() => {
     if (!session) return;
 
-    const saved = localStorage.getItem(
+    const saved = secureLocalStorage.getItem(
       `quiz_answers_${session.session_id}`
-    );
+    ) as string;
 
     if(saved) {
       setAnswers(JSON.parse(saved));
@@ -147,7 +148,7 @@ const QuizPage = () => {
       setAnswers(buildEmptyAnswers(session.questions));
     }
 
-    localStorage.setItem(
+    secureLocalStorage.setItem(
       `quiz_answers_${session.session_id}`,
       JSON.stringify(answers)
     );
@@ -156,7 +157,7 @@ const QuizPage = () => {
   useEffect(() => {
     if (!session) return;
 
-    localStorage.setItem(
+    secureLocalStorage.setItem(
       `quiz_answers_${session.session_id}`,
       JSON.stringify(answers)
     );
@@ -201,9 +202,9 @@ const QuizPage = () => {
   const submitQuizProcess = async (sessionData: QuizSession = session as QuizSession) => {
     setIsLoading(true);
     try {
-      const savedAnswers = localStorage.getItem(
+      const savedAnswers = secureLocalStorage.getItem(
         `quiz_answers_${sessionData.session_id}`
-      );
+      ) as string;
 
       const finalAnswers = savedAnswers
         ? JSON.parse(savedAnswers)
@@ -226,7 +227,7 @@ const QuizPage = () => {
         setQuizResult(finalResult.data);
 
         releaseQuizLock(sessionData.session_id);
-        localStorage.removeItem(`quiz_answers_${session.session_id}`);
+        secureLocalStorage.removeItem(`quiz_answers_${session.session_id}`);
       }
       
     } catch (error: any) {
@@ -238,8 +239,8 @@ const QuizPage = () => {
 
   const releaseQuizLock = (sessionId: string) => {
     const QUIZ_TAB_KEY = `ACTIVE_QUIZ_TAB_${sessionId}`;
-    if (localStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
-      localStorage.removeItem(QUIZ_TAB_KEY);
+    if (secureLocalStorage.getItem(QUIZ_TAB_KEY) === TAB_ID) {
+      secureLocalStorage.removeItem(QUIZ_TAB_KEY);
     }
   };
 

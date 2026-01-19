@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { fetchAPI } from "../api";
 import { useNavigate } from "react-router-dom";
+import secureLocalStorage from "react-secure-storage";
 
 interface NavbarProps {
   sidebarOpen: boolean;
@@ -18,7 +19,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }: NavbarProps) => {
 
   const handleLogout = async () => {        
     await fetchAPI("/auth/logout", { method: "POST" }, true);
-    localStorage.removeItem("accessToken");
+    secureLocalStorage.removeItem("accessToken");
     navigate("/login", { replace: true });
   }
 
