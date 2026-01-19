@@ -64,7 +64,7 @@ const HistoryPage = () => {
   }, [currentPage, limit]);
 
   return (
-    <div className="p-4 max-w-4xl mx-auto font-sans">
+    <div className="mt-20 px-15 mx-auto font-sans">
       <h1 className="text-2xl font-bold mb-4">Riwayat Kuis</h1>
 
       <div className="mb-4 flex items-center gap-2">
