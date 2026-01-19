@@ -54,8 +54,7 @@ const HistoryDetailPage = () => {
   if (!detail) return <div className="text-center py-20 text-gray-500">Detail tidak ditemukan</div>;
 
   return (
-    <div className="p-4 max-w-2xl mx-auto font-sans">
-
+    <div className="mt-20 p-4 max-w-2xl mx-auto font-sans">
       <div className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg shadow">
         <h2 className="text-2xl font-bold">{detail.subtest_name}</h2>
         <div className="mt-4 flex flex-col gap-2 text-white/90">

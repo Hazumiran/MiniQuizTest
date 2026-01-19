@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAPI } from "../api"; 
 import AuthCard from "../components/AuthCard";
+import secureLocalStorage from "react-secure-storage";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ const LoginPage = () => {
 
       const token = res.data.access_token;
       
-      localStorage.setItem("accessToken", token);
+      secureLocalStorage.setItem("accessToken", token);
 
       navigate("/dashboard", { replace: true });
 
@@ -45,7 +46,7 @@ const LoginPage = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = secureLocalStorage.getItem("accessToken");
     if (token) {
       navigate("/dashboard", { replace: true });
     }
