@@ -7,6 +7,7 @@ import QuizPage from "../pages/QuizPage";
 import HistoryPage from "../pages/HistoryPage";
 import HistoryDetailPage from "../pages/HistoryDetailPage";
 import MainLayout from "../layout/MainLayout";
+import ProfilePage from "../pages/ProfilePage";
 
 function RoutesPage() {
   return (
@@ -22,6 +23,7 @@ function RoutesPage() {
           }
         >
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/history/:session_id" element={<HistoryDetailPage />} />

@@ -94,7 +94,7 @@ const Navbar = ({ sidebarOpen, setSidebarOpen }: NavbarProps) => {
               <ul className="py-1 text-sm text-gray-700">
                 <li>
                   <Link
-                    to="/dashboard"
+                    to="/profile"
                     className="block w-full px-4 py-2 hover:bg-gray-100 rounded"
                   >
                     Profile
